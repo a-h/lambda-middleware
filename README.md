@@ -54,7 +54,7 @@ const errorExample = async (): Promise<Response<HelloOutput>> => {
 
 A bundling function combines all of the middleware for use.
 
-```
+```typescript
 export const get = buildGetApi<HelloOutput>(getExample);
 export const post = buildPostApi<HelloInput, HelloOutput>(postExample);
 export const error = buildPostApi<HelloInput, HelloOutput>(errorExample);
