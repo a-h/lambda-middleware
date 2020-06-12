@@ -14,12 +14,6 @@ By using this API middleware, you can take the API Gateway handling code out of 
 APIs are defined with input and output types for HTTP handlers:
 
 ```typescript
-// POST / PUT handlers would require an XInput type.
-class HelloInput {
-  first: string;
-  last: string;
-}
-
 // All of the handlers need a JSON output type.
 class HelloOutput {
   message: string;
@@ -27,6 +21,24 @@ class HelloOutput {
     this.message = msg;
   }
 }
+```
+
+POST / PUT handlers also require an XInput type.
+
+```typescript
+class HelloInput {
+  first: string;
+  last: string;
+}
+```
+
+If you define a joi schema, it can be used to validate JSON posts.
+
+```typescript
+const helloInputValidation = Joi.object<HelloInput>({
+    first: Joi.string().required(),
+    last: Joi.string().required(),
+});
 ```
 
 A GET handler doesn't need to do JSON.stringify here - the middleware does that.
@@ -56,7 +68,7 @@ A bundling function combines all of the middleware for use.
 
 ```typescript
 export const get = buildGetApi<HelloOutput>(getExample);
-export const post = buildPostApi<HelloInput, HelloOutput>(postExample);
+// Note that (optional) validation is passed in.
+export const post = buildPostApi<HelloInput, HelloOutput>(postExample, helloInputValidation);
 export const error = buildPostApi<HelloInput, HelloOutput>(errorExample);
 ```
-

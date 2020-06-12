@@ -1,12 +1,6 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda';
-import {
-    withJsonGet,
-    withJsonPost,
-    RequestContext,
-    Response,
-    GetApi,
-    PostApi,
-} from '.';
+import { withJsonGet, withJsonPost, RequestContext, Response, GetApi, PostApi } from '.';
+import Joi from '@hapi/joi';
 
 class HelloInput {
     first: string;
@@ -16,6 +10,11 @@ class HelloInput {
         this.last = last;
     }
 }
+
+const helloInputValidation = Joi.object<HelloInput>({
+    first: Joi.string().required(),
+    last: Joi.string().required(),
+});
 
 class HelloOutput {
     message: string;
@@ -67,6 +66,19 @@ describe('JSON POST API', () => {
         // Act.
         const response = await handler({
             body: `{ ____ invalid JSON ____ }`,
+        } as APIGatewayProxyEventV2);
+        // Assert.
+        expect(response.body).toBe(expected);
+        expect(response.statusCode).toBe(expectedStatus);
+    });
+    it('validates the input if a joi schema is provided', async () => {
+        // Arrange.
+        const handler = withJsonPost(greeter, helloInputValidation);
+        const expected = `{"msg":"JSON body failed validation","errors":[{"msg":"\\"first\\" must be a string","path":"first"},{"msg":"\\"last\\" is required","path":"last"}]}`;
+        const expectedStatus = 422;
+        // Act.
+        const response = await handler({
+            body: `{ "first": 123 }`,
         } as APIGatewayProxyEventV2);
         // Assert.
         expect(response.body).toBe(expected);
