@@ -20,21 +20,11 @@ export class RequestData {
         this.time = start.toISOString();
         this.src = 'rl';
         this.status = response?.statusCode || 0;
-        if (this.status && this.status >= 100 && this.status < 200) {
-            this.http_1xx = 1;
-        }
-        if (this.status && this.status >= 200 && this.status < 300) {
-            this.http_2xx = 1;
-        }
-        if (this.status && this.status >= 300 && this.status < 400) {
-            this.http_3xx = 1;
-        }
-        if (this.status && this.status >= 400 && this.status < 500) {
-            this.http_4xx = 1;
-        }
-        if (this.status && this.status >= 500 && this.status < 600) {
-            this.http_5xx = 1;
-        }
+        this.http_1xx = inRange(this.status, 100, 200);
+        this.http_2xx = inRange(this.status, 200, 300);
+        this.http_3xx = inRange(this.status, 300, 400);
+        this.http_4xx = inRange(this.status, 400, 500);
+        this.http_5xx = inRange(this.status, 500, 600);
         this.len = response?.body ? response.body.length : 0;
         this.ms = end.getTime() - start.getTime();
         this.method = request?.requestContext?.http?.method || "";
@@ -42,16 +32,19 @@ export class RequestData {
     }
 }
 
+const inRange = (n: number, from: number, to: number): number => n >= from && n < to ? 1 : undefined;
+
 export type OnRequestCompleteFunction = (data: RequestData) => void;
 export type DateFunction = () => Date;
 
 const DefaultLogger: OnRequestCompleteFunction = (data: RequestData) => console.log(JSON.stringify(data));
+const DefaultDateFunction: DateFunction = () => new Date();
 
 // withHttpLogging logs HTTP information - the HTTP status code, response body length, time taken, method and path.
 export const withHttpLogging = (
     next: APIGatewayHandler,
     onRequestComplete: OnRequestCompleteFunction = DefaultLogger,
-    now: DateFunction = () => new Date(),
+    now: DateFunction = DefaultDateFunction,
 ): APIGatewayHandler => async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyStructuredResultV2> => {
     const start = now();
     const response = await next(event);
