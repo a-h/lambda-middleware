@@ -1,3 +1,7 @@
+# Archived
+
+AWS brought out their own middleware: https://aws.amazon.com/blogs/compute/simplifying-serverless-best-practices-with-aws-lambda-powertools-for-typescript/
+
 # lambda-middleware
 
 Opinionated middleware for implementing API Gateway Lambdas.
